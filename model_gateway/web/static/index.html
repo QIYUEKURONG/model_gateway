@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>模型网关</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="eyebrow">本地入口 · 127.0.0.1</p>
+      <h1>模型网关</h1>
+    </div>
+    <div class="status-bar">
+      <div class="pills" id="status"></div>
+      <button type="button" class="ghost" id="open-config">配置</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>提示词</h2>
+        <button type="button" class="ghost" id="fill-sample">填入示例</button>
+      </div>
+      <label>标识<input id="prompt-key" value="trip.plan" autocomplete="off"></label>
+      <label>角色
+        <select id="prompt-role">
+          <option value="system">system</option>
+          <option value="user">user</option>
+        </select>
+      </label>
+      <label>正文
+        <textarea id="prompt-body" rows="7">Plan {city} for {nights} nights.
+示例：{{"city": "{city}"}}</textarea>
+      </label>
+      <div class="slot-head">
+        <span>槽位</span>
+        <button type="button" class="ghost" id="add-slot">添加</button>
+      </div>
+      <div id="slots"></div>
+      <label>变更说明<input id="changelog" value="网页示例"></label>
+      <button type="button" id="publish">发布新版本</button>
+      <p class="hint" id="publish-hint"></p>
+      <h3>已发布版本</h3>
+      <ul id="versions" class="versions"></ul>
+    </section>
+
+    <section class="panel process">
+      <div class="panel-head">
+        <h2>一次调用</h2>
+      </div>
+      <div class="run-grid">
+        <label>供应商
+          <select id="provider">
+            <option value="deepseek">DeepSeek V4 Flash</option>
+            <option value="anthropic">Anthropic Messages</option>
+          </select>
+        </label>
+        <label>模型
+          <input id="model" placeholder="留空使用默认模型" autocomplete="off">
+        </label>
+        <label>输出
+          <select id="format">
+            <option value="text">文本</option>
+            <option value="json_object" selected>JSON</option>
+            <option value="json_schema">JSON Schema</option>
+          </select>
+        </label>
+        <label>方式
+          <select id="delivery">
+            <option value="stream" selected>流式</option>
+            <option value="complete">完成后一次返回</option>
+          </select>
+        </label>
+      </div>
+      <label id="schema-wrap" hidden>JSON Schema
+        <textarea id="schema" rows="5">{
+  "type": "object",
+  "properties": {"city": {"type": "string"}, "outline": {"type": "string"}},
+  "required": ["city", "outline"],
+  "additionalProperties": false
+}</textarea>
+      </label>
+      <label>用户消息
+        <textarea id="user-message" rows="3">请给出行程要点，并返回 json。</textarea>
+      </label>
+      <div id="bindings"></div>
+      <div class="actions">
+        <button type="button" class="secondary" id="preview">预览渲染</button>
+        <button type="button" id="send">发送并查看过程</button>
+      </div>
+      <ol class="steps" id="steps">
+        <li data-step="validate">校验参数</li>
+        <li data-step="render">渲染提示词</li>
+        <li data-step="call">调用供应商</li>
+        <li data-step="stream">流式返回</li>
+        <li data-step="ledger">写入账本</li>
+      </ol>
+      <div id="render-view" class="render-view"></div>
+      <p id="countdown" class="countdown" hidden>已等待 00:00</p>
+      <h3>模型输出</h3>
+      <pre id="output" class="output">等待发送</pre>
+      <pre id="parsed" class="output parsed" hidden></pre>
+      <p class="hint" id="run-hint"></p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>账本</h2>
+        <button type="button" class="ghost" id="refresh">刷新</button>
+      </div>
+      <dl class="stats" id="stats"></dl>
+      <div id="calls"></div>
+    </section>
+  </main>
+  <dialog id="config">
+    <form id="config-form">
+      <h2>配置</h2>
+      <p class="hint">密钥写入当前目录的 .env，并立刻用于这个进程。页面不会回显密钥，数据库和日志里也不会留下它。留空表示不修改。</p>
+      <label>DeepSeek API key
+        <input id="deepseek-key" type="password" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="check"><input id="clear-deepseek" type="checkbox">清除 DeepSeek 密钥</label>
+      <label>DeepSeek 地址
+        <input id="deepseek-base" autocomplete="off" spellcheck="false">
+      </label>
+      <label>Anthropic API key
+        <input id="anthropic-key" type="password" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="check"><input id="clear-anthropic" type="checkbox">清除 Anthropic 密钥</label>
+      <label>Anthropic 地址
+        <input id="anthropic-base" autocomplete="off" spellcheck="false">
+      </label>
+      <div class="actions">
+        <button type="button" class="ghost" id="close-config">取消</button>
+        <button type="submit" id="save-config">保存</button>
+      </div>
+      <p class="hint" id="config-hint"></p>
+    </form>
+  </dialog>
+  <script src="/static/app.js"></script>
+</body>
+</html>
